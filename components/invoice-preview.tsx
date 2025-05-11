@@ -52,7 +52,7 @@ export default function InvoicePreview({ invoiceData, subtotal, tax, total }: In
           <tr className="border-b">
             <th className="py-2 text-left">Description</th>
             {/* <th className="py-2 text-right">Quantity</th> */}
-            <th className="py-2 text-right">Price</th>
+            {/* <th className="py-2 text-right">Price</th> */}
             <th className="py-2 text-right">Amount</th>
           </tr>
         </thead>
@@ -61,7 +61,7 @@ export default function InvoicePreview({ invoiceData, subtotal, tax, total }: In
             <tr key={index} className="border-b">
               <td className="py-3">{item.description || "Item description"}</td>
               {/* <td className="py-3 text-right">{item.quantity}</td> */}
-              <td className="py-3 text-right">{formatCurrency(item.price)}</td>
+              {/* <td className="py-3 text-right">{formatCurrency(item.price)}</td> */}
               <td className="py-3 text-right">{formatCurrency(item.price)}</td>
             </tr>
           ))}
