@@ -4,14 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,7 +15,6 @@ import type { InvoiceData, InvoiceItem } from "@/types/invoice"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Steps, Step } from "@/components/ui/steps"
 
-// Extend the Window interface to include html2pdf
 declare global {
   interface Window {
     html2pdf: any
@@ -47,17 +38,26 @@ export default function InvoiceGenerator() {
 
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
     invoiceNumber: "INV-",
-    date: new Date().toISOString().split("T")[0],
+    date: "",
     dueDate: "",
     clientName: "",
     clientEmail: "",
-    companyName: "Lightspeed Labs",
-    companyEmail: "lightspeedlabs.io@gmail.com",
+    companyName: "Akash Garlands",
+    companyEmail: "0767722120",
     items: [{ description: "", price: 0 }],
     notes: "",
     terms: "",
     taxRate: 0,
+    companyAddress: "No: 29, Barathi Village, Sinna Urani, Batticaloa",
   })
+
+  // Set the date only on the client to avoid hydration mismatch
+  useEffect(() => {
+    setInvoiceData((prev) => ({
+      ...prev,
+      date: new Date().toISOString().split("T")[0],
+    }))
+  }, [])
 
   // Load html2pdf.js script dynamically
   useEffect(() => {
@@ -97,52 +97,17 @@ export default function InvoiceGenerator() {
         }
       }
     `
-    // Add the style element to the document head
     document.head.appendChild(style)
-
-    // Clean up function to remove the style element when component unmounts
     return () => {
       document.head.removeChild(style)
     }
   }, [])
 
-  // Reset email dialog state when closed
   useEffect(() => {
-    if (!showEmailDialog) {
       setEmailStep("download")
       setPdfDownloaded(false)
-    }
-  }, [showEmailDialog])
+  })
 
-  // Set default email values when client email changes
-  useEffect(() => {
-    if (invoiceData.clientEmail) {
-      setEmailAddress(invoiceData.clientEmail)
-      setEmailSubject(
-        `Invoice #${invoiceData.invoiceNumber || "New"} from ${invoiceData.companyName || "Your Company"}`,
-      )
-      setEmailBody(`Dear ${invoiceData.clientName || "Client"},
-
-Please find attached the invoice #${invoiceData.invoiceNumber || "New"}.
-
-Total Amount: ${formatCurrency(calculateTotal())}
-
-If you have any questions, please don't hesitate to contact us.
-
-Best regards,
-${invoiceData.companyName || "Your Company"}`)
-    }
-  }, [
-    invoiceData.clientEmail,
-    invoiceData.invoiceNumber,
-    invoiceData.companyName,
-    invoiceData.clientName,
-    invoiceData.dueDate,
-    invoiceData.items,
-    invoiceData.taxRate,
-  ])
-
-  // Update PDF filename when invoice number changes
   useEffect(() => {
     if (invoiceData.invoiceNumber) {
       setPdfFilename(`Invoice_${invoiceData.invoiceNumber}.pdf`)
@@ -239,7 +204,6 @@ ${invoiceData.companyName || "Your Company"}`)
     setTimeout(async () => {
       const result = await generatePDF()
       if (result) {
-        // Create a temporary link and trigger download
         const link = document.createElement("a")
         link.href = result.url
         link.download = result.filename
@@ -250,53 +214,19 @@ ${invoiceData.companyName || "Your Company"}`)
     }, 100)
   }
 
-  const handleEmailPdfDownload = async () => {
-    const result = await generatePDF()
-    if (result) {
-      // Create a temporary link and trigger download
-      const link = document.createElement("a")
-      link.href = result.url
-      link.download = result.filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-
-      // Mark PDF as downloaded and move to next step
-      setPdfDownloaded(true)
-      setEmailStep("email")
-    }
-  }
-
-  const handleOpenEmailClient = () => {
-    // Create mailto link with subject and body
-    const mailtoLink = `mailto:${emailAddress}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-
-    // Open the email client
-    window.location.href = mailtoLink
-
-    // Close the dialog
-    setShowEmailDialog(false)
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex justify-center items-center space-x-4 mb-6 print:hidden">
         <img
-          src="/LL-logo.png"
+          src="/logo.png"
           alt={`${invoiceData.companyName} Logo`}
-          className="h-16 w-16 object-cover rounded border"
+          className="h-16 w-16"
         />
-        <h1 className="text-3xl font-bold text-center">Invoice Generator</h1>
+        <h1 className="text-3xl font-bold text-center">Akash Flowers</h1>
       </div>
 
-      <div className="flex justify-center mb-6 space-x-4 print:hidden">
+      {/* Hide tab buttons on desktop (lg and up), show only on mobile/tablet */}
+      <div className="flex justify-center mb-6 space-x-4 print:hidden lg:hidden">
         <Button variant={activeTab === "form" ? "default" : "outline"} onClick={() => setActiveTab("form")}>
           Edit Invoice
         </Button>
@@ -322,49 +252,21 @@ ${invoiceData.companyName || "Your Company"}`)
           <div className="flex justify-end mb-4 space-x-2 print:hidden">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" onClick={handleDownloadPDF} disabled={pdfGenerating}>
-                    {pdfGenerating ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4 mr-2" />
-                    )}
-                    Download PDF
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Download invoice as PDF</p>
-                </TooltipContent>
+              <TooltipTrigger asChild>
+                <Button variant="outline" onClick={handleDownloadPDF} disabled={pdfGenerating}>
+                {pdfGenerating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                Download PDF
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Download invoice as PDF</p>
+              </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
-                    <Mail className="h-4 w-4 mr-2" />
-                    Email
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Email invoice to client</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" onClick={handlePrint}>
-                    <Printer className="h-4 w-4 mr-2" />
-                    Print
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Print or save as PDF</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider> */}
           </div>
 
           <Card className="print:shadow-none print:border-none">
@@ -381,148 +283,6 @@ ${invoiceData.companyName || "Your Company"}`)
           </Card>
         </div>
       </div>
-
-      {/* Email Dialog */}
-      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Email Invoice</DialogTitle>
-            <DialogDescription>Send this invoice to your client via email</DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4">
-            <Steps currentStep={emailStep === "download" ? 0 : 1}>
-              <Step title="Download PDF" description="Generate and download the invoice PDF">
-                <div className="mt-4 space-y-4">
-                  <Alert className="bg-blue-50 border-blue-200">
-                    <FileText className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-800">
-                      First, download the invoice PDF that you'll attach to your email.
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="flex justify-center">
-                    <Button
-                      onClick={handleEmailPdfDownload}
-                      disabled={pdfGenerating || pdfDownloaded}
-                      size="lg"
-                      className="w-full sm:w-auto"
-                    >
-                      {pdfGenerating ? (
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      ) : pdfDownloaded ? (
-                        <CheckCircle2 className="h-5 w-5 mr-2" />
-                      ) : (
-                        <Download className="h-5 w-5 mr-2" />
-                      )}
-                      {pdfDownloaded ? "PDF Downloaded" : "Download Invoice PDF"}
-                    </Button>
-                  </div>
-
-                  {pdfDownloaded && (
-                    <div className="flex justify-center mt-4">
-                      <Button variant="outline" onClick={() => setEmailStep("email")} className="flex items-center">
-                        Continue to Email
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </Step>
-
-              <Step title="Send Email" description="Open your email client with pre-filled details">
-                <div className="mt-4 space-y-4">
-                  <Alert className="bg-green-50 border-green-200">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">
-                      PDF downloaded successfully! Now you can send the email and attach the PDF.
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Recipient Email</Label>
-                      <div className="flex space-x-2">
-                        <Input
-                          id="email"
-                          value={emailAddress}
-                          onChange={(e) => setEmailAddress(e.target.value)}
-                          placeholder="client@example.com"
-                          className="flex-1"
-                        />
-                        {invoiceData.clientEmail && (
-                          <Button variant="outline" size="sm" onClick={() => setEmailAddress(invoiceData.clientEmail)}>
-                            Use Client
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="subject">Subject</Label>
-                      <div className="flex space-x-2">
-                        <Input
-                          id="subject"
-                          value={emailSubject}
-                          onChange={(e) => setEmailSubject(e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button variant="outline" size="icon" onClick={() => copyToClipboard(emailSubject)}>
-                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="body">Email Body</Label>
-                      <div className="flex space-x-2">
-                        <Textarea
-                          id="body"
-                          value={emailBody}
-                          onChange={(e) => setEmailBody(e.target.value)}
-                          rows={6}
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => copyToClipboard(emailBody)}
-                          className="self-start"
-                        >
-                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <Alert className="bg-amber-50 border-amber-200">
-                      <FileText className="h-4 w-4 text-amber-600" />
-                      <AlertDescription className="text-amber-800">
-                        Remember to attach the downloaded PDF file ({pdfFilename}) to your email after your email client
-                        opens.
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                </div>
-              </Step>
-            </Steps>
-          </div>
-
-          <DialogFooter>
-            <div className="flex justify-between w-full">
-              <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
-                Cancel
-              </Button>
-
-              {emailStep === "email" && (
-                <Button onClick={handleOpenEmailClient}>
-                  <Mail className="h-4 w-4 mr-2" />
-                  Open Email Client
-                </Button>
-              )}
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
