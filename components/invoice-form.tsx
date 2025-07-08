@@ -48,7 +48,7 @@ export default function InvoiceForm({ invoiceData, onInvoiceChange, onItemsChang
             <Label htmlFor="companyName">Company Name</Label>
             <Input id="companyName" name="companyName" value={invoiceData.companyName} onChange={handleChange} />
           </div>
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="companyAddress">Company Address</Label>
             <Textarea
               id="companyAddress"
@@ -57,9 +57,9 @@ export default function InvoiceForm({ invoiceData, onInvoiceChange, onItemsChang
               onChange={handleChange}
               rows={3}
             />
-          </div> */}
+          </div>
           <div className="space-y-2">
-            <Label htmlFor="companyEmail">Company Email</Label>
+            <Label htmlFor="companyEmail">Company Number</Label>
             <Input
               id="companyEmail"
               name="companyEmail"
@@ -71,9 +71,9 @@ export default function InvoiceForm({ invoiceData, onInvoiceChange, onItemsChang
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Client Information</h3>
+          <h3 className="text-lg font-medium">Customer Information</h3>
             <div className="space-y-2">
-            <Label htmlFor="clientName">Client Name <span className="text-red-500">*</span></Label>
+            <Label htmlFor="clientName">Customer Name <span className="text-red-500">*</span></Label>
             <Input
               id="clientName"
               name="clientName"
@@ -94,7 +94,7 @@ export default function InvoiceForm({ invoiceData, onInvoiceChange, onItemsChang
           </div> */}
             <div className="space-y-2">
             <Label htmlFor="clientEmail">
-              Client Email <span className="text-red-500">*</span>
+              Customer Contact Number <span className="text-red-500">*</span>
             </Label>
             <Input
               id="clientEmail"
