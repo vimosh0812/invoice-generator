@@ -13,14 +13,14 @@ export default function InvoicePreview({ invoiceData, subtotal, tax, total }: In
     <div className="space-y-8 print:text-black">
       <div className="flex justify-between">
         <div>
-            <img
-              src="/LL-logo.png"
-              alt={`${invoiceData.companyName} Logo`}
-              className="mb-4 h-16 w-16 object-cover rounded border"
-            />
-          <h2 className="text-2xl font-bold">{invoiceData.companyName || "Your Company"}</h2>
-          {/* <div className="mt-2 whitespace-pre-line">{invoiceData.companyAddress}</div> */}
-          {invoiceData.companyEmail && <div className="mt-1">{invoiceData.companyEmail}</div>}
+          <img
+            src="/logo.png"
+            alt={`${invoiceData.companyName} Logo`}
+            className="mb-4 h-24 w-24 object-cover"
+          />
+          <h2 className="text-3xl font-bold">{invoiceData.companyName || "Your Company"}</h2>
+          <div className="mt-2 whitespace-pre-line">{invoiceData.companyAddress}</div>
+          {invoiceData.companyEmail && <div className="mt-2 whitespace-pre-line">{invoiceData.companyEmail}</div>}
         </div>
         <div className="text-right">
           <h1 className="text-3xl font-bold">INVOICE</h1>
